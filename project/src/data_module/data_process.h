@@ -3,8 +3,8 @@
 
 #define EPS 1E-6
 
-
 int normalization(double *data, int n);
+void sort(double *data, int n);
 
 #endif
 
