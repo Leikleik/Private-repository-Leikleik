@@ -22,7 +22,7 @@ gcc -Wall -Wextra -Werror \
   "${ROOT_DIR}/src/yet_another_decision_module/decision.c" \
   "${ROOT_DIR}/src/data_libs/data_io.c" \
   "${ROOT_DIR}/src/data_libs/data_stat.c" \
-  -o "${BUILD_DIR}/Quest_2"
+  -o "${BUILD_DIR}/Quest_2" -lm
 echo "4 1 2 3 4" | "${BUILD_DIR}/Quest_2"
 echo
 
