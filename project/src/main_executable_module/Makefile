@@ -36,7 +36,7 @@ $(BUILD_DIR)/decision.o: $(DECISION_DIR)/decision.c | $(BUILD_DIR)
 
 Quest_3: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o \
 	$(BUILD_DIR)/data_stat.o $(BUILD_DIR)/data_process.o $(BUILD_DIR)/decision.o
-	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)/Quest_3
+	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)/Quest_3 -lm
 
 data_stat.a: $(BUILD_DIR)/data_stat.o | $(BUILD_DIR)
 	ar rcs $(BUILD_DIR)/data_stat.a $(BUILD_DIR)/data_stat.o
@@ -45,7 +45,7 @@ build_with_static: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o 
 	$(BUILD_DIR)/data_process.o $(BUILD_DIR)/decision.o data_stat.a
 	$(CC) $(CFLAGS) $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o \
 		$(BUILD_DIR)/data_process.o $(BUILD_DIR)/decision.o -L$(BUILD_DIR) -ldata_stat \
-		-o $(BUILD_DIR)/Quest_4
+		-o $(BUILD_DIR)/Quest_4 -lm
 
 data_process.so: $(DATA_MODULE_DIR)/data_process.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -fPIC -shared $< -o $(BUILD_DIR)/data_process.so
@@ -54,7 +54,7 @@ build_with_dynamic: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o
 	$(BUILD_DIR)/data_stat.o $(BUILD_DIR)/decision.o data_process.so
 	$(CC) $(CFLAGS) -DDYNAMIC_LIB $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o \
 		$(BUILD_DIR)/data_stat.o $(BUILD_DIR)/decision.o -L$(BUILD_DIR) -ldata_process \
-		-o $(BUILD_DIR)/Quest_5
+		-o $(BUILD_DIR)/Quest_5 -lm
 
 clean:
 	rm -rf $(BUILD_DIR)/Quest_3 $(BUILD_DIR)/Quest_4 $(BUILD_DIR)/Quest_5 \
