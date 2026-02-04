@@ -39,7 +39,7 @@ Quest_3: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o \
 	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)/Quest_3 -lm
 
 data_stat.a: $(BUILD_DIR)/data_stat.o | $(BUILD_DIR)
-	ar rcs $(BUILD_DIR)/data_stat.a $(BUILD_DIR)/data_stat.o
+	ar rcs $(BUILD_DIR)/libdata_stat.a $(BUILD_DIR)/data_stat.o
 
 build_with_static: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o \
 	$(BUILD_DIR)/data_process.o $(BUILD_DIR)/decision.o data_stat.a
@@ -58,6 +58,6 @@ build_with_dynamic: $(BUILD_DIR)/main_executable_module.o $(BUILD_DIR)/data_io.o
 
 clean:
 	rm -rf $(BUILD_DIR)/Quest_3 $(BUILD_DIR)/Quest_4 $(BUILD_DIR)/Quest_5 \
-		$(BUILD_DIR)/*.o $(BUILD_DIR)/data_stat.a $(BUILD_DIR)/data_process.so
+		$(BUILD_DIR)/*.o $(BUILD_DIR)/libdata_stat.a $(BUILD_DIR)/data_process.so
 
 rebuild: clean all
