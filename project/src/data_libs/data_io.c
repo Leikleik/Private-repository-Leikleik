@@ -2,10 +2,13 @@
 
 #include <stdio.h>
 
-void input(double *data, int n) {
+int input(double *data, int n) {
     for (int i = 0; i < n; i++) {
-        scanf("%lf", &data[i]);
+        if (scanf("%lf", &data[i]) != 1) {
+            return 0;
+        }
     }
+    return 1;
 }
 
 void output(double *data, int n) {

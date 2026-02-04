@@ -19,9 +19,9 @@ int main() {
         return 0;
     }
 
-    input(data, n);
-
-    if (normalization(data, n)) {
+    if (!input(data, n)) {
+        printf("ERROR");
+    } else if (normalization(data, n)) {
         output(data, n);
     } else {
         printf("ERROR");

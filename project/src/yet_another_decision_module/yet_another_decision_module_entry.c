@@ -19,9 +19,9 @@ int main() {
         return 0;
     }
 
-    input(data, n);
-
-    if (make_decision(data, n)) {
+    if (!input(data, n)) {
+        printf("NO");
+    } else if (make_decision(data, n)) {
         printf("YES");
     } else {
         printf("NO");

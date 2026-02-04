@@ -21,7 +21,11 @@ int main() {
     }
 
     printf("LOAD DATA...\n");
-    input(data, n);
+    if (!input(data, n)) {
+        printf("ERROR");
+        free(data);
+        return 0;
+    }
 
     printf("RAW DATA:\n\t");
     output(data, n);
