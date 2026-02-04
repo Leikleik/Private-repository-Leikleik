@@ -11,6 +11,6 @@
 */
 void print_log(char (*print) (char), char* message);
 
-char print_char(char ch);
+int print_char(char ch);
 
 #endif // PRINT_MODULE_H
