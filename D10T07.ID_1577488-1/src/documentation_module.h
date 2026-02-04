@@ -6,7 +6,7 @@
 
 #define Documents "Linked lists", "Queues", "Maps", "Binary Trees"
 #define Available_document "Binary Trees"
-#define Documents_count // ?
+#define Documents_count 4
 
 /*
     input: validation callback, documents count, args with documents names (max 16)
