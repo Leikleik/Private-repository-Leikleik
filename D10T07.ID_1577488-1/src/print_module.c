@@ -9,7 +9,7 @@ int print_char(char ch)
     return putchar(ch);
 }
 
-void print_log(char (*print) (char), char* message)
+void print_log(int (*print)(char), char* message)
 {
     char time_buffer[9] = "00:00:00";
     char output[256];

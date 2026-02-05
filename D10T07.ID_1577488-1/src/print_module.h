@@ -9,7 +9,7 @@
     output: void
     result: "Log_prefix HH:MM:SS message"
 */
-void print_log(char (*print) (char), char* message);
+void print_log(int (*print)(char), char* message);
 
 int print_char(char ch);
 
