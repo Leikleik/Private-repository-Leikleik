@@ -6,6 +6,7 @@
 #include "documentation_module.h"
 #endif
 
+#ifdef DOCUMENTATION_MODULE
 static void print_documentation_status(char** documents, int* availability, int count)
 {
     for (int i = 0; i < count; i++) {
@@ -13,6 +14,7 @@ static void print_documentation_status(char** documents, int* availability, int 
         printf("[%15s : %s]\n", documents[i], status);
     }
 }
+#endif
 
 int main(void)
 {
