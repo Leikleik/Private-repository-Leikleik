@@ -41,6 +41,22 @@ const char *preset_path(int mode) {
   return path;
 }
 
+const char *preset_fallback_path(int mode) {
+  const char *path = NULL;
+  if (mode == 2) {
+    path = "./D12P02/src/presets/cow.txt";
+  } else if (mode == 3) {
+    path = "./D12P02/src/presets/gun_gosper.txt";
+  } else if (mode == 4) {
+    path = "./D12P02/src/presets/gun_simple.txt";
+  } else if (mode == 5) {
+    path = "./D12P02/src/presets/agar.txt";
+  } else if (mode == 6) {
+    path = "./D12P02/src/presets/ship_new.txt";
+  }
+  return path;
+}
+
 void read_field_stream(FILE *stream, int field[ROWS][COLS]) {
   fill_default(field);
   for (int i = 0; i < ROWS; i++) {
@@ -53,17 +69,32 @@ void read_field_stream(FILE *stream, int field[ROWS][COLS]) {
   }
 }
 
+void set_demo_glider(int field[ROWS][COLS]) {
+  int center_row = ROWS / 2;
+  int center_col = COLS / 2;
+  fill_default(field);
+  field[center_row][center_col + 1] = 1;
+  field[center_row + 1][center_col + 2] = 1;
+  field[center_row + 2][center_col] = 1;
+  field[center_row + 2][center_col + 1] = 1;
+  field[center_row + 2][center_col + 2] = 1;
+}
+
 void load_preset(int mode, int field[ROWS][COLS]) {
   const char *path = preset_path(mode);
+  const char *fallback_path = preset_fallback_path(mode);
   FILE *file = NULL;
   if (path != NULL) {
     file = fopen(path, "r");
+  }
+  if (file == NULL && fallback_path != NULL) {
+    file = fopen(fallback_path, "r");
   }
   if (file != NULL) {
     read_field_stream(file, field);
     fclose(file);
   } else {
-    fill_default(field);
+    set_demo_glider(field);
   }
 }
 
@@ -130,14 +161,14 @@ void copy_field(int from[ROWS][COLS], int to[ROWS][COLS]) {
   }
 }
 
-void draw_field(int field[ROWS][COLS], int delay_ms, int mode) {
+void draw_field(int field[ROWS][COLS], int delay_ms, int mode, int generation) {
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
       mvaddch(i, j, field[i][j] ? '#' : '.');
     }
   }
-  mvprintw(ROWS, 0, "A/Z speed  SPACE exit  mode:%d  delay:%dms", mode,
-           delay_ms);
+  mvprintw(ROWS, 0, "A/Z speed  SPACE exit  mode:%d  gen:%d  delay:%dms", mode,
+           generation, delay_ms);
   refresh();
 }
 
@@ -159,19 +190,21 @@ void run_game(int field[ROWS][COLS], int mode) {
   int next[ROWS][COLS];
   int running = 1;
   int delay_ms = 200;
+  int generation = 0;
   timeout(delay_ms);
   while (running) {
-    draw_field(field, delay_ms, mode);
+    draw_field(field, delay_ms, mode, generation);
     process_key(getch(), &delay_ms, &running);
     timeout(delay_ms);
     evolve(field, next);
     copy_field(next, field);
+    generation++;
   }
 }
 
 int main(int argc, char **argv) {
   int field[ROWS][COLS];
-  int mode = 2;
+  int mode = 3;
   if (argc > 1) {
     mode = parse_mode(argv[1]);
   }
