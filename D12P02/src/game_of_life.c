@@ -15,11 +15,23 @@ void fill_default(int field[ROWS][COLS]) {
   }
 }
 
-int parse_mode(const char *arg) {
+int read_mode_from_user(void) {
   int mode = 0;
-  if (arg != NULL) {
-    if (arg[0] >= '1' && arg[0] <= '6' && arg[1] == '\0') {
-      mode = arg[0] - '0';
+  int valid = 0;
+  while (!valid) {
+    printf("Введите корректное число от 1 до 5:\n");
+    if (scanf("%d", &mode) == 1) {
+      if (mode >= 1 && mode <= 5) {
+        valid = 1;
+      } else {
+        printf("Ошибка! Введите корректное число от 1 до 5.\n");
+      }
+    } else {
+      printf("Ошибка! Введите корректное число от 1 до 5.\n");
+    }
+    int ch = getchar();
+    while (ch != '\n' && ch != EOF) {
+      ch = getchar();
     }
   }
   return mode;
@@ -27,32 +39,32 @@ int parse_mode(const char *arg) {
 
 const char *preset_path(int mode) {
   const char *path = NULL;
-  if (mode == 2) {
-    path = "./presets/cow.txt";
+  if (mode == 1) {
+    path = "./presets/1.txt";
+  } else if (mode == 2) {
+    path = "./presets/2.txt";
   } else if (mode == 3) {
-    path = "./presets/gun_gosper.txt";
+    path = "./presets/3.txt";
   } else if (mode == 4) {
-    path = "./presets/gun_simple.txt";
+    path = "./presets/4.txt";
   } else if (mode == 5) {
-    path = "./presets/agar.txt";
-  } else if (mode == 6) {
-    path = "./presets/ship_new.txt";
+    path = "./presets/5.txt";
   }
   return path;
 }
 
 const char *preset_fallback_path(int mode) {
   const char *path = NULL;
-  if (mode == 2) {
-    path = "./D12P02/src/presets/cow.txt";
+  if (mode == 1) {
+    path = "./D12P02/src/presets/1.txt";
+  } else if (mode == 2) {
+    path = "./D12P02/src/presets/2.txt";
   } else if (mode == 3) {
-    path = "./D12P02/src/presets/gun_gosper.txt";
+    path = "./D12P02/src/presets/3.txt";
   } else if (mode == 4) {
-    path = "./D12P02/src/presets/gun_simple.txt";
+    path = "./D12P02/src/presets/4.txt";
   } else if (mode == 5) {
-    path = "./D12P02/src/presets/agar.txt";
-  } else if (mode == 6) {
-    path = "./D12P02/src/presets/ship_new.txt";
+    path = "./D12P02/src/presets/5.txt";
   }
   return path;
 }
@@ -221,21 +233,11 @@ void close_screen(SCREEN *screen) {
   }
 }
 
-int main(int argc, char **argv) {
+int main(void) {
   int field[ROWS][COLS];
-  int mode = 3;
+  int mode = read_mode_from_user();
   SCREEN *screen = NULL;
-  if (argc > 1) {
-    mode = parse_mode(argv[1]);
-  }
-  if (mode == 1) {
-    read_field_stream(stdin, field);
-  } else {
-    if (mode < 2 || mode > 6) {
-      mode = 2;
-    }
-    load_preset(mode, field);
-  }
+  load_preset(mode, field);
   screen = init_screen();
   if (screen != NULL) {
     run_game(field, mode);
