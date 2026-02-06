@@ -202,9 +202,29 @@ void run_game(int field[ROWS][COLS], int mode) {
   }
 }
 
+SCREEN *init_screen(void) {
+  SCREEN *screen = newterm(NULL, stdout, stdin);
+  if (screen != NULL) {
+    set_term(screen);
+    noecho();
+    cbreak();
+    curs_set(0);
+    keypad(stdscr, TRUE);
+  }
+  return screen;
+}
+
+void close_screen(SCREEN *screen) {
+  if (screen != NULL) {
+    endwin();
+    delscreen(screen);
+  }
+}
+
 int main(int argc, char **argv) {
   int field[ROWS][COLS];
   int mode = 3;
+  SCREEN *screen = NULL;
   if (argc > 1) {
     mode = parse_mode(argv[1]);
   }
@@ -216,12 +236,10 @@ int main(int argc, char **argv) {
     }
     load_preset(mode, field);
   }
-  initscr();
-  noecho();
-  cbreak();
-  curs_set(0);
-  keypad(stdscr, TRUE);
-  run_game(field, mode);
-  endwin();
+  screen = init_screen();
+  if (screen != NULL) {
+    run_game(field, mode);
+  }
+  close_screen(screen);
   return 0;
 }
