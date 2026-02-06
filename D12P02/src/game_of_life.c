@@ -3,44 +3,73 @@
 
 #define ROWS 25
 #define COLS 80
+#define MIN_DELAY 40
+#define MAX_DELAY 1000
+#define DELAY_STEP 40
 
 void initialize_field(int field[ROWS][COLS]);
+void print_menu(void);
 void print_field(int field[ROWS][COLS]);
 int count_neighbors(int field[ROWS][COLS], int row, int col);
 void calculate_next_generation(int current[ROWS][COLS], int next[ROWS][COLS]);
 char get_user_input(void);
-void print_menu(void);
 int read_mode_from_user(void);
-void change_stream(int mode);
-void restore_stdin(void);
+void process_input(char key, int *delay_ms, int *running);
 
 int main(void) {
   int field[ROWS][COLS];
   int next_gen[ROWS][COLS];
-  int mode = read_mode_from_user();
+  int delay_ms = 200;
   int running = 1;
-  change_stream(mode);
-  initialize_field(field);
-  restore_stdin();
-  initscr();
-  noecho();
-  cbreak();
-  curs_set(0);
-  keypad(stdscr, TRUE);
-  while (running) {
-    clear();
-    print_menu();
-    print_field(field);
-    char cmd = get_user_input();
-    if (cmd == 'n') {
-      calculate_next_generation(field, next_gen);
-    } else if (cmd == 'q') {
-      running = 0;
+  int mode = read_mode_from_user();
+  const char *path = NULL;
+  FILE *preset_file = NULL;
+  switch (mode) {
+  case 1:
+    path = "./presets/1.txt";
+    break;
+  case 2:
+    path = "./presets/2.txt";
+    break;
+  case 3:
+    path = "./presets/3.txt";
+    break;
+  case 4:
+    path = "./presets/4.txt";
+    break;
+  case 5:
+    path = "./presets/5.txt";
+    break;
+  default:
+    printf("Неверный режим!\n");
+    running = 0;
+    break;
+  }
+  if (running) {
+    preset_file = fopen(path, "r");
+    if (preset_file != NULL) {
+      fclose(preset_file);
+      freopen(path, "r", stdin);
+      initialize_field(field);
+      freopen("/dev/tty", "r", stdin);
+      initscr();
+      noecho();
+      cbreak();
+      curs_set(0);
+      keypad(stdscr, TRUE);
+      while (running) {
+        clear();
+        print_menu();
+        print_field(field);
+        timeout(delay_ms);
+        process_input(get_user_input(), &delay_ms, &running);
+        calculate_next_generation(field, next_gen);
+      }
+      endwin();
     } else {
-      mvprintw(ROWS + 1, 0, "Неверная команда. Используй n или q.");
+      printf("Ошибка открытия файла пресета!\n");
     }
   }
-  endwin();
   return 0;
 }
 
@@ -55,6 +84,10 @@ void initialize_field(int field[ROWS][COLS]) {
       }
     }
   }
+}
+
+void print_menu(void) {
+  mvprintw(ROWS, 0, "A/Z speed | SPACE exit | Delay: up/down | Next gen auto");
 }
 
 void print_field(int field[ROWS][COLS]) {
@@ -100,12 +133,11 @@ void calculate_next_generation(int current[ROWS][COLS], int next[ROWS][COLS]) {
 
 char get_user_input(void) {
   int ch = getch();
-  flushinp();
-  return (char)ch;
-}
-
-void print_menu(void) {
-  mvprintw(ROWS, 0, "Следующее поколение [n] | Выход [q]");
+  char result = 0;
+  if (ch != ERR) {
+    result = (char)ch;
+  }
+  return result;
 }
 
 int read_mode_from_user(void) {
@@ -130,18 +162,24 @@ int read_mode_from_user(void) {
   return mode;
 }
 
-void change_stream(int mode) {
-  if (mode == 1) {
-    freopen("./presets/1.txt", "r", stdin);
-  } else if (mode == 2) {
-    freopen("./presets/2.txt", "r", stdin);
-  } else if (mode == 3) {
-    freopen("./presets/3.txt", "r", stdin);
-  } else if (mode == 4) {
-    freopen("./presets/4.txt", "r", stdin);
-  } else if (mode == 5) {
-    freopen("./presets/5.txt", "r", stdin);
+void process_input(char key, int *delay_ms, int *running) {
+  switch (key) {
+  case 'A':
+  case 'a':
+    if (*delay_ms > MIN_DELAY) {
+      *delay_ms -= DELAY_STEP;
+    }
+    break;
+  case 'Z':
+  case 'z':
+    if (*delay_ms < MAX_DELAY) {
+      *delay_ms += DELAY_STEP;
+    }
+    break;
+  case ' ':
+    *running = 0;
+    break;
+  default:
+    break;
   }
 }
-
-void restore_stdin(void) { freopen("/dev/tty", "r", stdin); }
