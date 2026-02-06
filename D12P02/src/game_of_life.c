@@ -15,18 +15,56 @@ void fill_default(int field[ROWS][COLS]) {
   }
 }
 
-int read_field(int field[ROWS][COLS]) {
-  int ok = 1;
+int parse_mode(const char *arg) {
+  int mode = 0;
+  if (arg != NULL) {
+    if (arg[0] >= '1' && arg[0] <= '6' && arg[1] == '\0') {
+      mode = arg[0] - '0';
+    }
+  }
+  return mode;
+}
+
+const char *preset_path(int mode) {
+  const char *path = NULL;
+  if (mode == 2) {
+    path = "./presets/cow.txt";
+  } else if (mode == 3) {
+    path = "./presets/gun_gosper.txt";
+  } else if (mode == 4) {
+    path = "./presets/gun_simple.txt";
+  } else if (mode == 5) {
+    path = "./presets/agar.txt";
+  } else if (mode == 6) {
+    path = "./presets/ship_new.txt";
+  }
+  return path;
+}
+
+void read_field_stream(FILE *stream, int field[ROWS][COLS]) {
   fill_default(field);
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
       int value = 0;
-      if (scanf("%d", &value) == 1) {
+      if (fscanf(stream, "%d", &value) == 1) {
         field[i][j] = value != 0;
       }
     }
   }
-  return ok;
+}
+
+void load_preset(int mode, int field[ROWS][COLS]) {
+  const char *path = preset_path(mode);
+  FILE *file = NULL;
+  if (path != NULL) {
+    file = fopen(path, "r");
+  }
+  if (file != NULL) {
+    read_field_stream(file, field);
+    fclose(file);
+  } else {
+    fill_default(field);
+  }
 }
 
 int wrap_row(int row) {
@@ -92,13 +130,14 @@ void copy_field(int from[ROWS][COLS], int to[ROWS][COLS]) {
   }
 }
 
-void draw_field(int field[ROWS][COLS], int delay_ms) {
+void draw_field(int field[ROWS][COLS], int delay_ms, int mode) {
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
       mvaddch(i, j, field[i][j] ? '#' : '.');
     }
   }
-  mvprintw(ROWS, 0, "A/Z speed  SPACE exit  delay:%dms", delay_ms);
+  mvprintw(ROWS, 0, "A/Z speed  SPACE exit  mode:%d  delay:%dms", mode,
+           delay_ms);
   refresh();
 }
 
@@ -116,13 +155,13 @@ void process_key(int key, int *delay_ms, int *running) {
   }
 }
 
-void run_game(int field[ROWS][COLS]) {
+void run_game(int field[ROWS][COLS], int mode) {
   int next[ROWS][COLS];
   int running = 1;
   int delay_ms = 200;
   timeout(delay_ms);
   while (running) {
-    draw_field(field, delay_ms);
+    draw_field(field, delay_ms, mode);
     process_key(getch(), &delay_ms, &running);
     timeout(delay_ms);
     evolve(field, next);
@@ -130,17 +169,26 @@ void run_game(int field[ROWS][COLS]) {
   }
 }
 
-int main(void) {
+int main(int argc, char **argv) {
   int field[ROWS][COLS];
-  int ok = read_field(field);
-  if (ok) {
-    initscr();
-    noecho();
-    cbreak();
-    curs_set(0);
-    keypad(stdscr, TRUE);
-    run_game(field);
-    endwin();
+  int mode = 2;
+  if (argc > 1) {
+    mode = parse_mode(argv[1]);
   }
+  if (mode == 1) {
+    read_field_stream(stdin, field);
+  } else {
+    if (mode < 2 || mode > 6) {
+      mode = 2;
+    }
+    load_preset(mode, field);
+  }
+  initscr();
+  noecho();
+  cbreak();
+  curs_set(0);
+  keypad(stdscr, TRUE);
+  run_game(field, mode);
+  endwin();
   return 0;
 }
