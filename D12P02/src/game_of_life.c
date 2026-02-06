@@ -1,11 +1,111 @@
-#include "game_of_life.h"
+#include <ncurses.h>
+#include <stdio.h>
 
-void fill_default(int field[ROWS][COLS]) {
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      field[i][j] = 0;
+#define ROWS 25
+#define COLS 80
+
+void initialize_field(int field[ROWS][COLS]);
+void print_field(int field[ROWS][COLS]);
+int count_neighbors(int field[ROWS][COLS], int row, int col);
+void calculate_next_generation(int current[ROWS][COLS], int next[ROWS][COLS]);
+char get_user_input(void);
+void print_menu(void);
+int read_mode_from_user(void);
+void change_stream(int mode);
+void restore_stdin(void);
+
+int main(void) {
+  int field[ROWS][COLS];
+  int next_gen[ROWS][COLS];
+  int mode = read_mode_from_user();
+  int running = 1;
+  change_stream(mode);
+  initialize_field(field);
+  restore_stdin();
+  initscr();
+  noecho();
+  cbreak();
+  curs_set(0);
+  keypad(stdscr, TRUE);
+  while (running) {
+    clear();
+    print_menu();
+    print_field(field);
+    char cmd = get_user_input();
+    if (cmd == 'n') {
+      calculate_next_generation(field, next_gen);
+    } else if (cmd == 'q') {
+      running = 0;
+    } else {
+      mvprintw(ROWS + 1, 0, "Неверная команда. Используй n или q.");
     }
   }
+  endwin();
+  return 0;
+}
+
+void initialize_field(int field[ROWS][COLS]) {
+  for (int i = 0; i < ROWS; i++) {
+    for (int j = 0; j < COLS; j++) {
+      int value = 0;
+      if (scanf("%d", &value) == 1) {
+        field[i][j] = value != 0;
+      } else {
+        field[i][j] = 0;
+      }
+    }
+  }
+}
+
+void print_field(int field[ROWS][COLS]) {
+  for (int i = 0; i < ROWS; i++) {
+    for (int j = 0; j < COLS; j++) {
+      mvaddch(i, j, field[i][j] ? '#' : '.');
+    }
+  }
+  refresh();
+}
+
+int count_neighbors(int field[ROWS][COLS], int row, int col) {
+  int count = 0;
+  for (int dr = -1; dr <= 1; dr++) {
+    for (int dc = -1; dc <= 1; dc++) {
+      if (!(dr == 0 && dc == 0)) {
+        int r = (row + dr + ROWS) % ROWS;
+        int c = (col + dc + COLS) % COLS;
+        count += field[r][c];
+      }
+    }
+  }
+  return count;
+}
+
+void calculate_next_generation(int current[ROWS][COLS], int next[ROWS][COLS]) {
+  for (int i = 0; i < ROWS; i++) {
+    for (int j = 0; j < COLS; j++) {
+      int neighbors = count_neighbors(current, i, j);
+      if (current[i][j] == 1) {
+        next[i][j] = neighbors == 2 || neighbors == 3;
+      } else {
+        next[i][j] = neighbors == 3;
+      }
+    }
+  }
+  for (int i = 0; i < ROWS; i++) {
+    for (int j = 0; j < COLS; j++) {
+      current[i][j] = next[i][j];
+    }
+  }
+}
+
+char get_user_input(void) {
+  int ch = getch();
+  flushinp();
+  return (char)ch;
+}
+
+void print_menu(void) {
+  mvprintw(ROWS, 0, "Следующее поколение [n] | Выход [q]");
 }
 
 int read_mode_from_user(void) {
@@ -45,137 +145,3 @@ void change_stream(int mode) {
 }
 
 void restore_stdin(void) { freopen("/dev/tty", "r", stdin); }
-
-void read_field(int field[ROWS][COLS]) {
-  fill_default(field);
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      int value = 0;
-      if (scanf("%d", &value) == 1) {
-        field[i][j] = value != 0;
-      }
-    }
-  }
-}
-
-int wrap_row(int row) {
-  int res = row;
-  if (res < 0) {
-    res += ROWS;
-  }
-  if (res >= ROWS) {
-    res -= ROWS;
-  }
-  return res;
-}
-
-int wrap_col(int col) {
-  int res = col;
-  if (res < 0) {
-    res += COLS;
-  }
-  if (res >= COLS) {
-    res -= COLS;
-  }
-  return res;
-}
-
-int neighbors_count(int field[ROWS][COLS], int row, int col) {
-  int count = 0;
-  for (int dr = -1; dr <= 1; dr++) {
-    for (int dc = -1; dc <= 1; dc++) {
-      if (!(dr == 0 && dc == 0)) {
-        int nr = wrap_row(row + dr);
-        int nc = wrap_col(col + dc);
-        count += field[nr][nc];
-      }
-    }
-  }
-  return count;
-}
-
-int next_cell(int alive, int neighbors) {
-  int next = 0;
-  if (alive) {
-    next = neighbors == 2 || neighbors == 3;
-  } else {
-    next = neighbors == 3;
-  }
-  return next;
-}
-
-void evolve(int field[ROWS][COLS], int next[ROWS][COLS]) {
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      int near = neighbors_count(field, i, j);
-      next[i][j] = next_cell(field[i][j], near);
-    }
-  }
-}
-
-void copy_field(int from[ROWS][COLS], int to[ROWS][COLS]) {
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      to[i][j] = from[i][j];
-    }
-  }
-}
-
-void draw_field(int field[ROWS][COLS], int delay_ms, int mode, int generation) {
-  clear();
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      mvaddch(i, j, field[i][j] ? '#' : ' ');
-    }
-  }
-  mvprintw(ROWS, 0, "Speed: A/Z | Exit: Space | Mode:%d Gen:%d Delay:%dms",
-           mode, generation, delay_ms);
-  refresh();
-}
-
-void process_input(int *delay_ms, int *running) {
-  int ch = getch();
-  if (ch == 'A' || ch == 'a') {
-    if (*delay_ms > MIN_DELAY) {
-      *delay_ms -= DELAY_STEP;
-    }
-  } else if (ch == 'Z' || ch == 'z') {
-    if (*delay_ms < MAX_DELAY) {
-      *delay_ms += DELAY_STEP;
-    }
-  } else if (ch == ' ') {
-    *running = 0;
-  }
-}
-
-void run_game(int field[ROWS][COLS], int mode) {
-  int next[ROWS][COLS];
-  int running = 1;
-  int delay_ms = 200;
-  int generation = 0;
-  while (running) {
-    draw_field(field, delay_ms, mode, generation);
-    timeout(delay_ms);
-    process_input(&delay_ms, &running);
-    evolve(field, next);
-    copy_field(next, field);
-    generation++;
-  }
-}
-
-int main(void) {
-  int field[ROWS][COLS];
-  int mode = read_mode_from_user();
-  change_stream(mode);
-  read_field(field);
-  restore_stdin();
-  initscr();
-  noecho();
-  cbreak();
-  curs_set(0);
-  keypad(stdscr, TRUE);
-  timeout(0);
-  run_game(field, mode);
-  endwin();
-  return 0;
-}
