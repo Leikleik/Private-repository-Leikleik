@@ -37,76 +37,29 @@ int read_mode_from_user(void) {
   return mode;
 }
 
-const char *preset_path(int mode) {
-  const char *path = NULL;
+void change_stream(int mode) {
   if (mode == 1) {
-    path = "./presets/1.txt";
+    freopen("./presets/1.txt", "r", stdin);
   } else if (mode == 2) {
-    path = "./presets/2.txt";
+    freopen("./presets/2.txt", "r", stdin);
   } else if (mode == 3) {
-    path = "./presets/3.txt";
+    freopen("./presets/3.txt", "r", stdin);
   } else if (mode == 4) {
-    path = "./presets/4.txt";
+    freopen("./presets/4.txt", "r", stdin);
   } else if (mode == 5) {
-    path = "./presets/5.txt";
+    freopen("./presets/5.txt", "r", stdin);
   }
-  return path;
 }
 
-const char *preset_fallback_path(int mode) {
-  const char *path = NULL;
-  if (mode == 1) {
-    path = "./D12P02/src/presets/1.txt";
-  } else if (mode == 2) {
-    path = "./D12P02/src/presets/2.txt";
-  } else if (mode == 3) {
-    path = "./D12P02/src/presets/3.txt";
-  } else if (mode == 4) {
-    path = "./D12P02/src/presets/4.txt";
-  } else if (mode == 5) {
-    path = "./D12P02/src/presets/5.txt";
-  }
-  return path;
-}
-
-void read_field_stream(FILE *stream, int field[ROWS][COLS]) {
+void read_field(int field[ROWS][COLS]) {
   fill_default(field);
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
       int value = 0;
-      if (fscanf(stream, "%d", &value) == 1) {
+      if (scanf("%d", &value) == 1) {
         field[i][j] = value != 0;
       }
     }
-  }
-}
-
-void set_demo_glider(int field[ROWS][COLS]) {
-  int center_row = ROWS / 2;
-  int center_col = COLS / 2;
-  fill_default(field);
-  field[center_row][center_col + 1] = 1;
-  field[center_row + 1][center_col + 2] = 1;
-  field[center_row + 2][center_col] = 1;
-  field[center_row + 2][center_col + 1] = 1;
-  field[center_row + 2][center_col + 2] = 1;
-}
-
-void load_preset(int mode, int field[ROWS][COLS]) {
-  const char *path = preset_path(mode);
-  const char *fallback_path = preset_fallback_path(mode);
-  FILE *file = NULL;
-  if (path != NULL) {
-    file = fopen(path, "r");
-  }
-  if (file == NULL && fallback_path != NULL) {
-    file = fopen(fallback_path, "r");
-  }
-  if (file != NULL) {
-    read_field_stream(file, field);
-    fclose(file);
-  } else {
-    set_demo_glider(field);
   }
 }
 
@@ -214,34 +167,17 @@ void run_game(int field[ROWS][COLS], int mode) {
   }
 }
 
-SCREEN *init_screen(void) {
-  SCREEN *screen = newterm(NULL, stdout, stdin);
-  if (screen != NULL) {
-    set_term(screen);
-    noecho();
-    cbreak();
-    curs_set(0);
-    keypad(stdscr, TRUE);
-  }
-  return screen;
-}
-
-void close_screen(SCREEN *screen) {
-  if (screen != NULL) {
-    endwin();
-    delscreen(screen);
-  }
-}
-
 int main(void) {
   int field[ROWS][COLS];
   int mode = read_mode_from_user();
-  SCREEN *screen = NULL;
-  load_preset(mode, field);
-  screen = init_screen();
-  if (screen != NULL) {
-    run_game(field, mode);
-  }
-  close_screen(screen);
+  change_stream(mode);
+  read_field(field);
+  initscr();
+  noecho();
+  cbreak();
+  curs_set(0);
+  keypad(stdscr, TRUE);
+  run_game(field, mode);
+  endwin();
   return 0;
 }
