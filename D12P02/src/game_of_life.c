@@ -51,6 +51,8 @@ void change_stream(int mode) {
   }
 }
 
+void restore_stdin(void) { freopen("/dev/tty", "r", stdin); }
+
 void read_field(int field[ROWS][COLS]) {
   fill_default(field);
   for (int i = 0; i < ROWS; i++) {
@@ -172,6 +174,7 @@ int main(void) {
   int mode = read_mode_from_user();
   change_stream(mode);
   read_field(field);
+  restore_stdin();
   initscr();
   noecho();
   cbreak();
