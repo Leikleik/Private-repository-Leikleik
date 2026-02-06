@@ -1,11 +1,4 @@
-#include <ncurses.h>
-#include <stdio.h>
-
-#define ROWS 25
-#define COLS 80
-#define MIN_DELAY 40
-#define MAX_DELAY 1000
-#define DELAY_STEP 40
+#include "game_of_life.h"
 
 void fill_default(int field[ROWS][COLS]) {
   for (int i = 0; i < ROWS; i++) {
