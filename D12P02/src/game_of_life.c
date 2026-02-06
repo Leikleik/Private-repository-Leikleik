@@ -122,26 +122,28 @@ void copy_field(int from[ROWS][COLS], int to[ROWS][COLS]) {
 }
 
 void draw_field(int field[ROWS][COLS], int delay_ms, int mode, int generation) {
+  clear();
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
-      mvaddch(i, j, field[i][j] ? '#' : '.');
+      mvaddch(i, j, field[i][j] ? '#' : ' ');
     }
   }
-  mvprintw(ROWS, 0, "A/Z speed  SPACE exit  mode:%d  gen:%d  delay:%dms", mode,
-           generation, delay_ms);
+  mvprintw(ROWS, 0, "Speed: A/Z | Exit: Space | Mode:%d Gen:%d Delay:%dms",
+           mode, generation, delay_ms);
   refresh();
 }
 
-void process_key(int key, int *delay_ms, int *running) {
-  if (key == 'A' || key == 'a') {
+void process_input(int *delay_ms, int *running) {
+  int ch = getch();
+  if (ch == 'A' || ch == 'a') {
     if (*delay_ms > MIN_DELAY) {
       *delay_ms -= DELAY_STEP;
     }
-  } else if (key == 'Z' || key == 'z') {
+  } else if (ch == 'Z' || ch == 'z') {
     if (*delay_ms < MAX_DELAY) {
       *delay_ms += DELAY_STEP;
     }
-  } else if (key == ' ') {
+  } else if (ch == ' ') {
     *running = 0;
   }
 }
@@ -151,11 +153,10 @@ void run_game(int field[ROWS][COLS], int mode) {
   int running = 1;
   int delay_ms = 200;
   int generation = 0;
-  timeout(delay_ms);
   while (running) {
     draw_field(field, delay_ms, mode, generation);
-    process_key(getch(), &delay_ms, &running);
     timeout(delay_ms);
+    process_input(&delay_ms, &running);
     evolve(field, next);
     copy_field(next, field);
     generation++;
@@ -173,6 +174,7 @@ int main(void) {
   cbreak();
   curs_set(0);
   keypad(stdscr, TRUE);
+  timeout(0);
   run_game(field, mode);
   endwin();
   return 0;

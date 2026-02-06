@@ -22,7 +22,7 @@ int next_cell(int alive, int neighbors);
 void evolve(int field[ROWS][COLS], int next[ROWS][COLS]);
 void copy_field(int from[ROWS][COLS], int to[ROWS][COLS]);
 void draw_field(int field[ROWS][COLS], int delay_ms, int mode, int generation);
-void process_key(int key, int *delay_ms, int *running);
+void process_input(int *delay_ms, int *running);
 void run_game(int field[ROWS][COLS], int mode);
 
 #endif // GAME_OF_LIFE_H
